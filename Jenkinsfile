@@ -25,23 +25,23 @@ pipeline {
             environment {
                 SONAR_LOGIN = credentials('SONARCLOUD_TOKEN')
             }
-            parallel {
-                stage('Integration Tests') {
-                    steps {
-                        gradlew('integrationTest')
-                    }
-                    post {
-                        always {
-                            junit '**/build/test-results/integrationTest/TEST-*.xml'
-                        }
-                    }
-                }
+            //parallel {
+            //    stage('Integration Tests') {
+            //        steps {
+            //            gradlew('integrationTest')
+            //        }
+            //        post {
+            //            always {
+            //                junit '**/build/test-results/integrationTest/TEST-*.xml'
+            //            }
+            //        }
+            //    }
                 stage('Code Analysis') {
                     steps {
                         gradlew('sonarqube')
                     }
                 }
-            }
+            //}
         }
         stage('Assemble') {
             steps {
