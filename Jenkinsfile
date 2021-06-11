@@ -16,6 +16,26 @@ pipeline {
                 gradlew('test')
             }
         }
+
+        stage("Code coverage") {
+            steps {
+                gradlew ('jacocoTestReport')
+                    publishHTML (target: [
+                        reportDir: 'build/reports/jacoco/test/html',
+                        reportFiles: 'index.html',
+                        reportName: 'JacocoReport'
+                    ])
+                gradlew ('jacocoTestCoverageVerification')
+            }
+        }
+        stage('SonarQube analysis') {
+            steps {
+                withSonarQubeEnv('SONARCLOUD_TOKEN') {
+                    gradlew ('sonarqube')
+                }
+            }
+        }
+
         stage('Build') {
             steps {
                 gradlew('build')

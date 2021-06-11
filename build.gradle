@@ -2,7 +2,7 @@ plugins {
 	id 'org.springframework.boot' version '2.5.0'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
-	id 'org.sonarqube' version '3.2.0'
+	id 'org.sonarqube' version '3.0'
 }
 
 group = 'com.example'
@@ -21,12 +21,4 @@ dependencies {
 
 test {
 	useJUnitPlatform()
-}
-
-sonarqube {
-  properties {
-    property 'sonar.projectKey', 'jeademo_demo1'
-    property 'sonar.organization', 'jeademo'
-    property 'sonar.host.url', 'https://sonarcloud.io'
-  }
 }
