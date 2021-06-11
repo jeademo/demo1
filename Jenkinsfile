@@ -60,15 +60,14 @@ pipeline {
             steps {
                 script {
                     def DockerImage = docker.build("${DOCKER_REG}:${env.BUILD_ID}")
-                    DockerImage.push()
+                    //DockerImage.push()
                 }
             }
-            post {
-                always {
-                    container('docker') {
-                        sh "docker rmi -f ${image.id}"
-                    }
-                }
+        }
+
+        stage('Remove Docker image') {
+            steps{
+                sh "docker rmi -f ${DockerImage.id}"
             }
         }
     }
