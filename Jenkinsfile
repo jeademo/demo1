@@ -21,10 +21,9 @@ pipeline {
                 gradlew('build')
             }
         }
-        stage('Assemble') {
+        stage ('Docker test') {
             steps {
-                gradlew('assemble')
-                //stash includes: '**/build/libs/*.jar', name: 'app'
+                sh "docker version"
             }
         }
     }
