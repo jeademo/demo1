@@ -3,6 +3,7 @@ plugins {
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
 	id 'org.sonarqube' version '3.0'
+	id 'jacoco'
 }
 
 group = 'com.example'
@@ -21,4 +22,20 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+}
+
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                minimum = 0.2
+            }
+        }
+    }
+}
+ 
+jacocoTestReport {
+    reports {
+        xml.enabled true
+    }
 }
