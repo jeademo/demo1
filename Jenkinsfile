@@ -56,11 +56,14 @@ pipeline {
             }
         }
         
-        stage('Build Docker image') {
+        stage('Build & push Docker image') {
             steps {
                 script {
-                    def DockerImage = docker.build("${DOCKER_REG}:${env.BUILD_ID}")
-                    DockerImage.push()
+                    def DockerImage = docker.build("${DOCKER_REG}")
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+                        DockerImage.push("${env.BUILD_NUMBER}")
+                        DockerImage.push("latest")
+                    }
                 }
             }
         }
