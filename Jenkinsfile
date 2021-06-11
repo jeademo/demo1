@@ -30,7 +30,7 @@ pipeline {
         }
         stage('SonarQube analysis') {
             steps {
-                withSonarQubeEnv('localhost') {
+                withSonarQubeEnv('sonar-jea') {
                     gradlew ('sonarqube')
                 }
             }
