@@ -30,7 +30,7 @@ pipeline {
         }
         stage('SonarQube analysis') {
             steps {
-                withSonarQubeEnv('SONARCLOUD_TOKEN') {
+                withSonarQubeEnv('localhost') {
                     gradlew ('sonarqube')
                 }
             }
