@@ -66,6 +66,13 @@ pipeline {
                     }
                 }
             }
+            post {
+                always {
+                    container('docker') {
+                        sh "docker rmi -f ${image.id}"
+                    }
+                }
+            }
         }
 
         //stage('Remove Docker image') {
