@@ -70,8 +70,8 @@ pipeline {
             }
             post {
                 always {
-                    container('docker') {
-                        sh "docker rmi -f ${image.id}"
+                    script {
+                        sh "docker rmi -f ${DockerImage.id}"
                     }
                 }
             }
