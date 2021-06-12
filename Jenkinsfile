@@ -63,11 +63,11 @@ pipeline {
                 script {
                     def DockerImage = docker.build("${DOCKER_REG}")
 
-                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub_token',
-                    usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                        sh 'echo "$PASSWORD" | docker login --username "$USERNAME" --password-stdin'
+                    //withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub_token',
+                    //usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                        //sh 'echo "$PASSWORD" | docker login --username "$USERNAME" --password-stdin'
 
-                    //docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
                         DockerImage.push("${env.BUILD_NUMBER}")
                         DockerImage.push("latest")
                     }
