@@ -62,7 +62,12 @@ pipeline {
             steps {
                 script {
                     def DockerImage = docker.build("${DOCKER_REG}")
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+
+                    withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub_token',
+                    usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
+                        sh 'echo "$PASSWORD" | docker login --username "$USERNAME" --password-stdin'
+
+                    //docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
                         DockerImage.push("${env.BUILD_NUMBER}")
                         DockerImage.push("latest")
                     }
@@ -71,7 +76,7 @@ pipeline {
             post {
                 always {
                     script {
-                        sh "docker rmi -f ${DockerImage.id}"
+                        sh "docker rmi -f ${DOCKER_REG}:${env.BUILD_NUMBER} ${DOCKER_REG}:latest"
                     }
                 }
             }
