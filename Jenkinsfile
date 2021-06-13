@@ -16,7 +16,7 @@ pipeline {
         IMAGE_NAME = 'demo1'
         DOCKER_REG = 'jeatest00000002/demo1'
         DOCKER_CRED = 'docker_token'
-        GOOGLE_CRED = 'gcp_sa'
+        GOOGLE_CRED = credentials('gcp_sa')
     }
 
     stages {
