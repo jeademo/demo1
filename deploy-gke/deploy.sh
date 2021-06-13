@@ -22,5 +22,4 @@ sed -i "s/APP/${IMAGE_NAME}/g; s/VERSION/${VERSION}/g" ${APP_YAML}
 gcloud auth activate-service-account --key-file=${GOOGLE_CRED}
 gcloud container clusters get-credentials ${GKE} --region ${REGION} --project ${PROJECT}
 
-cat ${APP_YAML}
-#kubectl apply -f app.yaml
+kubectl apply -f ${APP_YAML}
