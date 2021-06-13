@@ -16,7 +16,7 @@ VERSION=$1
 #export GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_CRED}
 #export GOOGLE_CLOUD_KEYFILE_JSON=${GOOGLE_CRED}
 
-sed -i 's/APP/${IMAGE_NAME}/g; s/VERSION/${VERSION}/g' app.yaml
+sed -i "s/APP/${IMAGE_NAME}/g; s/VERSION/${VERSION}/g" app.yaml
 
 gcloud auth activate-service-account --key-file=${GOOGLE_CRED}
 gcloud container clusters get-credentials ${GKE} --region ${REGION} --project ${PROJECT}
