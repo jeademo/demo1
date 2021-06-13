@@ -76,17 +76,11 @@ pipeline {
             post {
                 always {
                     script {
-                        sh "docker rmi -f ${DOCKER_REG}:${env.BUILD_NUMBER} ${DOCKER_REG}:latest"
+                        sh "docker rmi -f ${DOCKER_REG}"
                     }
                 }
             }
         }
-
-        //stage('Remove Docker image') {
-        //    steps{
-        //        sh "docker rmi -f ${DockerImage.id}"
-        //    }
-        //}
     }
     post {
         always {
