@@ -16,6 +16,7 @@ pipeline {
         IMAGE_NAME = 'demo1'
         DOCKER_REG = 'jeatest00000002/demo1'
         DOCKER_CRED = 'docker_token'
+        GOOGLE_CRED = 'gcp_sa'
     }
 
     stages {
@@ -81,7 +82,16 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to GKE'){
+            steps {
+                script {
+                    sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
+                }
+            }
+        }
     }
+
     post {
         always {
             cleanWs()
