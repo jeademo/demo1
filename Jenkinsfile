@@ -3,10 +3,6 @@
 pipeline {
     agent any
 
-    //triggers {
-    //    pollSCM('* * * * *')
-    //}
-
     options {
         ansiColor('xterm')
         timeout(time: 1, unit: 'HOURS')
