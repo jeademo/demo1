@@ -3,9 +3,9 @@
 pipeline {
     agent any
 
-    triggers {
-        pollSCM('* * * * *')
-    }
+    //triggers {
+    //    pollSCM('* * * * *')
+    //}
 
     options {
         ansiColor('xterm')
