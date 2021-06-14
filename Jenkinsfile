@@ -59,7 +59,7 @@ pipeline {
         }
 
 
-        stage('dev')
+        stage('dev') {
             when {
                 branch 'dev'
             }
@@ -96,6 +96,7 @@ pipeline {
                 }
             }
         }
+    }
     }
     }
 
