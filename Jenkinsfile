@@ -19,8 +19,7 @@ pipeline {
         GOOGLE_CRED = credentials('gcp_sa')
     }
 
-    stages {
-        
+    stages {        
         stage('Compile') {
             steps {
                 gradlew('compileJava')
@@ -59,45 +58,45 @@ pipeline {
             }
         }
 
-        stages {
 
-            stage('Build & push Docker image') {
+        stage('dev')
+            when {
+                branch 'dev'
+            }
+                stages {
 
-                when {
-                    branch 'dev'
-                }
-
-                steps {
-                    script {
-                        def DockerImage = docker.build("${DOCKER_REG}")
+        stage('Build & push Docker image') {
+            steps {
+                script {
+                    def DockerImage = docker.build("${DOCKER_REG}")
 
                         //withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub_token',
                         //usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
                             //sh 'echo "$PASSWORD" | docker login --username "$USERNAME" --password-stdin'
 
-                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
-                            DockerImage.push("${env.BUILD_NUMBER}")
-                            DockerImage.push("latest")
-                        }
-                    }
-                }
-                post {
-                    always {
-                        script {
-                            sh "docker rmi -f ${DOCKER_REG}"
-                        }
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+                        DockerImage.push("${env.BUILD_NUMBER}")
+                        DockerImage.push("latest")
                     }
                 }
             }
-
-            stage('Deploy to GKE'){
-                steps {
+            post {
+                always {
                     script {
-                        sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
+                        sh "docker rmi -f ${DOCKER_REG}"
                     }
                 }
             }
         }
+
+        stage('Deploy to GKE'){
+            steps {
+                script {
+                    sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
+                }
+            }
+        }
+    }
     }
 
     post {
