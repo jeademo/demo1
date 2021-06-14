@@ -39,7 +39,7 @@ spec:
     run: APP
   type: NodePort
 ---
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: APP-ingress
@@ -47,6 +47,18 @@ metadata:
   annotations:
     kubernetes.io/ingress.global-static-ip-name: "APP-static-ip"
 spec:
-  backend:
-    serviceName: APP-svc
-    servicePort: 8080
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: APP-svc
+            port:
+              number: 8080
+
+#spec:
+#  backend:
+#    serviceName: APP-svc
+#    servicePort: 8080
