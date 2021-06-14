@@ -84,7 +84,7 @@ pipeline {
 
         stage('Build & push Docker image') {
             when {
-                branch 'master' }
+                branch 'master'
             }
             stages {
                 stage ('Build & push Docker image') {
