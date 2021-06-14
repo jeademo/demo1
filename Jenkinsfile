@@ -58,28 +58,21 @@ pipeline {
             }
         }
 
-
-        stage('dev') {
-            when {
-                branch 'dev'
-            }
-                stages {
-
         stage('Build & push Docker image') {
+
+            when {
+                not { branch 'dev' }
+                not { branch 'master' }
+            }
+
             steps {
                 script {
                     def DockerImage = docker.build("${DOCKER_REG}")
-
-                        //withCredentials([[$class: 'UsernamePasswordMultiBinding', credentialsId: 'dockerhub_token',
-                        //usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD']]) {
-                            //sh 'echo "$PASSWORD" | docker login --username "$USERNAME" --password-stdin'
-
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
-                        DockerImage.push("${env.BUILD_NUMBER}")
-                        DockerImage.push("latest")
+                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+                            DockerImage.push("${env.BRANCH_NAME}-${env.BUILD_NUMBER}")
+                        }
                     }
                 }
-            }
             post {
                 always {
                     script {
@@ -89,15 +82,39 @@ pipeline {
             }
         }
 
-        stage('Deploy to GKE'){
-            steps {
-                script {
-                    sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
+        stage('dev') {
+            when {
+                branch 'dev'
+            }
+            stages {
+                stage('dev: Build & push Docker image') {
+                    steps {
+                        script {
+                            def DockerImage = docker.build("${DOCKER_REG}")
+                            docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+                                DockerImage.push("${env.BUILD_NUMBER}")
+                                    DockerImage.push("latest")
+                            }
+                        }
+                    }
+                    post {
+                        always {
+                            script {
+                                sh "docker rmi -f ${DOCKER_REG}"
+                            }
+                        }
+                    }
+                }
+
+                stage('dev: Deploy to GKE'){
+                    steps {
+                        script {
+                            sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
+                        }
+                    }
                 }
             }
         }
-    }
-    }
     }
 
     post {
@@ -106,7 +123,6 @@ pipeline {
         }
     }
 }
-
 
 def gradlew(String... args) {
     sh "./gradlew ${args.join(' ')} -s"
