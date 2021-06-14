@@ -60,10 +60,6 @@ pipeline {
         }
         
         stage('Build & push Docker image') {
-            when {
-                not { branch 'dev' }
-                not { branch 'master' }
-            }
             steps {
                 script {
                     def DockerImage = docker.build("${DOCKER_REG}")
@@ -82,35 +78,29 @@ pipeline {
             }
         }
 
-        stage('Build & push Docker image') {
-            when {
-                branch 'master'
-            }
-            stages {
-                stage ('Build & push Docker image') {
-                    steps {
-                        script {
-                            def DockerImage = docker.build("${DOCKER_REG}")
-                            docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
-                                DockerImage.push("${env.BUILD_NUMBER}")
-                                DockerImage.push("latest")
-                            }
-                        }
-                    }
-                    post {
-                        always {
-                            script {
-                                sh "docker rmi -f ${DOCKER_REG}"
-                            }
-                        }
+        stage ('Build & push Docker image') {
+            steps {
+                script {
+                    def DockerImage = docker.build("${DOCKER_REG}")
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+                        DockerImage.push("${env.BUILD_NUMBER}")
+                        DockerImage.push("latest")
                     }
                 }
-                stage('Deploy to GKE'){
-                    steps {
-                        script {
-                            sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
-                        }
+            }
+            post {
+                always {
+                    script {
+                        sh "docker rmi -f ${DOCKER_REG}"
                     }
+                }
+            }
+        }
+        
+        stage('Deploy to GKE'){
+            steps {
+                script {
+                    sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
                 }
             }
         }
