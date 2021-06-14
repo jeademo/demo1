@@ -94,7 +94,7 @@ pipeline {
                         script {
                             def DockerImage = docker.build("${DOCKER_REG}/${IMAGE_NAME_DEV}")
                             docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
-                                DockerImage.push("${env.BRANCH_NAME}-${env.BUILD_NUMBER}")
+                                DockerImage.push("${env.BUILD_NUMBER}")
                                 DockerImage.push("latest")
                             }
                         }
