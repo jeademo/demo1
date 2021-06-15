@@ -14,3 +14,9 @@ gcloud auth activate-service-account --key-file=${GOOGLE_CRED}
 gcloud container clusters get-credentials ${GKE} --region ${REGION} --project ${PROJECT}
 
 kubectl apply -f ${APP_YAML}
+
+if [ ${GKE} == "gke-demo1" ]; then
+    kubectl get -n ${IMAGE_NAME} deploy -o yaml \
+        | linkerd inject - \
+        | kubectl apply -f -
+fi
