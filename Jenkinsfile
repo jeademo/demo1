@@ -3,10 +3,6 @@
 pipeline {
     agent any
 
-    triggers {
-        pollSCM('* * * * *')
-    }
-
     options {
         ansiColor('xterm')
         timeout(time: 1, unit: 'HOURS')
@@ -163,3 +159,5 @@ pipeline {
 def gradlew(String... args) {
     sh "./gradlew ${args.join(' ')} -s"
 }
+
+//
