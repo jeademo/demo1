@@ -20,7 +20,7 @@ pipeline {
 
     stages {
 
-        stage('Check apply') {
+        stage('Apply GKE') {
             when {
                 expression {
                 env.ACTION == 'apply'
@@ -160,7 +160,40 @@ pipeline {
                 }
             }
         }
+
+        stage('Delete GKE') {
+            when {
+                expression {
+                env.ACTION == 'delete'
+                }
+            }
+
+            stages {
+                stage('dev') {
+                    when {
+                        branch 'dev'
+                    }
+                    steps {
+                        script {
+                            sh "./deploy-gke-dev/deploy.sh \"${env.BUILD_NUMBER}\""
+                        }
+                    }
+                }
+                stage('prod') {
+                    when {
+                        branch 'master'
+                    }
+                    steps {
+                        script {
+                            sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
+                        }
+                    }
+                }
+            }
+        }
     }
+
+    
 
     post {
         always {
