@@ -15,130 +15,174 @@ pipeline {
         DOCKER_REG = 'jeatest00000002'
         DOCKER_CRED = 'docker_token'
         GOOGLE_CRED = credentials('gcp_sa')
+        ACTION = 'delete'
     }
 
-    stages {        
-        stage('Compile') {
-            steps {
-                gradlew('compileJava')
-            }
-        }
-        
-        stage('Unit Tests') {
-            steps {
-                gradlew('test')
-            }
-        }
+    stages {
 
-        stage("Code coverage") {
-            steps {
-                gradlew ('jacocoTestReport')
-                    publishHTML (target: [
-                        reportDir: 'build/reports/jacoco/test/html',
-                        reportFiles: 'index.html',
-                        reportName: 'JacocoReport'
-                    ])
-                gradlew ('jacocoTestCoverageVerification')
-            }
-        }
-        
-        stage('SonarQube analysis') {
-            steps {
-                withSonarQubeEnv('sonar-jea') {
-                    gradlew ('sonarqube')
+        stage('Apply GKE') {
+            when {
+                expression {
+                env.ACTION == 'apply'
                 }
             }
-        }
 
-        stage('Build') {
-            steps {
-                gradlew('build')
-            }
-        }
+            stages {
 
-        stage('Build & push Docker image') {
+                stage('Compile') {
+                    steps {
+                        gradlew('compileJava')
+                    }
+                }
+                
+                stage('Unit Tests') {
+                    steps {
+                        gradlew('test')
+                    }
+                }
 
-            when {
-                not { branch 'dev' }
-                not { branch 'master' }
-            }
-
-            steps {
-                script {
-                    def DockerImage = docker.build("${DOCKER_REG}/${IMAGE_NAME_DESA}")
-                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
-                            DockerImage.push("${env.BRANCH_NAME}-${env.BUILD_NUMBER}")
+                stage("Code coverage") {
+                    steps {
+                        gradlew ('jacocoTestReport')
+                            publishHTML (target: [
+                                reportDir: 'build/reports/jacoco/test/html',
+                                reportFiles: 'index.html',
+                                reportName: 'JacocoReport'
+                            ])
+                        gradlew ('jacocoTestCoverageVerification')
+                    }
+                }
+                
+                stage('SonarQube analysis') {
+                    steps {
+                        withSonarQubeEnv('sonar-jea') {
+                            gradlew ('sonarqube')
                         }
                     }
                 }
-            post {
-                always {
-                    script {
-                        sh "docker rmi -f ${DOCKER_REG}/${IMAGE_NAME_DESA}"
+
+                stage('Build') {
+                    steps {
+                        gradlew('build')
                     }
                 }
-            }
-        }
 
-        stage('dev') {
-            when {
-                branch 'dev'
-            }
-            stages {
-                stage('dev: Build & push Docker image') {
+                stage('Build & push Docker image') {
+
+                    when {
+                        not { branch 'dev' }
+                        not { branch 'master' }
+                    }
+
                     steps {
                         script {
-                            def DockerImage = docker.build("${DOCKER_REG}/${IMAGE_NAME_DEV}")
-                            docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
-                                DockerImage.push("${env.BUILD_NUMBER}")
-                                DockerImage.push("latest")
+                            def DockerImage = docker.build("${DOCKER_REG}/${IMAGE_NAME_DESA}")
+                                docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+                                    DockerImage.push("${env.BRANCH_NAME}-${env.BUILD_NUMBER}")
+                                }
                             }
                         }
-                    }
                     post {
                         always {
                             script {
-                                sh "docker rmi -f ${DOCKER_REG}/${IMAGE_NAME_DEV}"
+                                sh "docker rmi -f ${DOCKER_REG}/${IMAGE_NAME_DESA}"
                             }
                         }
                     }
                 }
 
-                stage('dev: Deploy to GKE'){
+                stage('dev') {
+                    when {
+                        branch 'dev'
+                    }
+                    stages {
+                        stage('dev: Build & push Docker image') {
+                            steps {
+                                script {
+                                    def DockerImage = docker.build("${DOCKER_REG}/${IMAGE_NAME_DEV}")
+                                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+                                        DockerImage.push("${env.BUILD_NUMBER}")
+                                        DockerImage.push("latest")
+                                    }
+                                }
+                            }
+                            post {
+                                always {
+                                    script {
+                                        sh "docker rmi -f ${DOCKER_REG}/${IMAGE_NAME_DEV}"
+                                    }
+                                }
+                            }
+                        }
+
+                        stage('dev: Deploy to GKE'){
+                            steps {
+                                script {
+                                    sh "./deploy-gke-dev/deploy.sh \"${env.BUILD_NUMBER}\""
+                                }
+                            }
+                        }
+                    }
+                }
+
+                stage('prod') {
+                    when {
+                        branch 'master'
+                    }
+                    stages {
+                        stage('prod: Build & push Docker image') {
+                            steps {
+                                script {
+                                    def DockerImage = docker.build("${DOCKER_REG}/${IMAGE_NAME}")
+                                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
+                                        DockerImage.push("${env.BUILD_NUMBER}")
+                                        DockerImage.push("latest")
+                                    }
+                                }
+                            }
+                            post {
+                                always {
+                                    script {
+                                        sh "docker rmi -f ${DOCKER_REG}/${IMAGE_NAME}"
+                                    }
+                                }
+                            }
+                        }
+
+                        stage('prod: Deploy to GKE'){
+                            steps {
+                                script {
+                                    sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Delete GKE') {
+            when {
+                expression {
+                env.ACTION == 'delete'
+                }
+            }
+
+            stages {
+                stage('dev') {
+                    when {
+                        branch 'dev'
+                    }
                     steps {
                         script {
                             sh "./deploy-gke-dev/deploy.sh \"${env.BUILD_NUMBER}\""
                         }
                     }
                 }
-            }
-        }
-
-        stage('prod') {
-            when {
-                branch 'master'
-            }
-            stages {
-                stage('prod: Build & push Docker image') {
-                    steps {
-                        script {
-                            def DockerImage = docker.build("${DOCKER_REG}/${IMAGE_NAME}")
-                            docker.withRegistry('https://registry.hub.docker.com', 'dockerhub_token') {
-                                DockerImage.push("${env.BUILD_NUMBER}")
-                                DockerImage.push("latest")
-                            }
-                        }
+                stage('prod') {
+                    when {
+                        branch 'master'
                     }
-                    post {
-                        always {
-                            script {
-                                sh "docker rmi -f ${DOCKER_REG}/${IMAGE_NAME}"
-                            }
-                        }
-                    }
-                }
-
-                stage('prod: Deploy to GKE'){
                     steps {
                         script {
                             sh "./deploy-gke/deploy.sh \"${env.BUILD_NUMBER}\""
@@ -148,6 +192,8 @@ pipeline {
             }
         }
     }
+
+    
 
     post {
         always {
